@@ -1,75 +1,47 @@
-main_O=elf.o display.o main.o debug.o
-phase2_O=fusion.o elf.o display.o debug.o phase2.o
+BINS=main
+main_o=plus.o main.o constante.o expressionBinaire.o
 
+# Supported values : c cpp #
+CODE=cpp
 
-CC=gcc
-LD=gcc
-CFLAGS=-Wall -Werror -g
+# Libraries needed #
 INCLUDES=
-LINKS=elf.o debug.o display.o
 
-# BINS=$(shell grep  -Plz  'int\s*main\s*\(.*?\)\s*{' *.c | cut -d '.' -f 1)
-BINS=main phase2
-sources=$(wildcard *.c)
-#cources_o = $(firstword $(subst :, ,$1))
-DEP=$(patsubst %.c, %.dep, $(wildcard *.c))
-
--include $(DEP)
-
-#$(foreach B,$(BINS),$(ea)
+# Makes gcc speak english #
+LANG=c
 
 
-binarize = $(1): $($(1)_O)
+# Standard conf #
+ifeq ($(CODE), cpp)
+	CC=g++
+	LD=g++
+endif
+ifeq ($(CODE), c)
+	CC=gcc
+	LD=gcc
+endif
 
+SRC_EXT=.$(CODE)
+CFLAGS=-Wall -Werror -g
+DEP=$(patsubst %$(SRC_EXT), %.dep, $(wildcard *$(SRC_EXT)))
 
-#Not a file to look for
-.PHONY: default all clean dep clear hello
+################## Rules ##################
+
+# Not a file to look for #
+.PHONY: default all clean dep clear locale
 default: all 
 
-
+-include $(DEP)
 all: clear dep $(BINS)
+main: $(main_o)
 
-main: $(main_O)
-phase2: $(phase2_O)
-
-
-%.o: %.c
+%.o: %$(SRC_EXT)
 	$(CC) $(CFLAGS) -c $< -o $@ $(INCLUDES)
-
-# $(BINS): $(BINS).o $(LINKS)
-# 	$(LD) -o $@ $^
 
 clean:
 	rm -f *.o $(BINS) *.dep
-%.dep: %.c
-	gcc -MM $< > $@
+%.dep: %$(SRC_EXT)
+	$(CC) -MM $< > $@
 dep: $(DEP)
 clear:
 	clear
-	#@echo $(foo)
-	#@$(foreach module,$(MODULES),$(foreach cfile,$(SRC_$(module)),echo '[$(cfile)]';))
-
-
-
-
-
-
-none:
-	# @for B in $(BINS); \
-	# 	do \
-	# 	echo $(B); \
-	# done
-
-# foo = $(call binarize, main)
-
-
-
-	# @for B in $(BINS); \
- #        do \
- #            @echo $(LD) -o $B $B.o $($B_O) || exit $$?; \
- #        done
- 
-
-	 #$(foreach B, $(BINS), $(LD) -o $B $B.o $($B_O) $(LINKS); )
-# Obtains the OS type, either 'Darwin' (OS X) or 'Linux'
-	UNAME_S:=$(shell uname -s)
